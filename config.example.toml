@@ -1,8 +1,8 @@
 [server]
 max_connections = 10
 default_timeout_secs = 30
-strict_host_key_checking = false  # Set to true in production
-# known_hosts_path = "~/.ssh/known_hosts"
+strict_host_key_checking = true  # Set to true in production
+known_hosts_path = "~/.ssh/known_hosts"
 use_ssh_agent = true
 rate_limit_per_session = 30  # Max tool calls per minute per session
 
