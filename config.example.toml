@@ -1,0 +1,52 @@
+[server]
+max_connections = 10
+default_timeout_secs = 30
+strict_host_key_checking = false  # Set to true in production
+# known_hosts_path = "~/.ssh/known_hosts"
+use_ssh_agent = true
+rate_limit_per_session = 30  # Max tool calls per minute per session
+
+# Pre-configured SSH targets (optional)
+# [[targets]]
+# name = "prod-web"
+# host = "web.example.com"
+# port = 22
+# username = "deploy"
+# key_path = "~/.ssh/id_ed25519"
+
+[commands]
+allowed = [
+    "ls", "cat", "head", "tail", "grep", "find", "wc",
+    "ps", "top", "df", "du", "free", "uptime", "whoami",
+    "systemctl", "journalctl",
+    "docker", "kubectl",
+    "date", "hostname", "uname", "id", "env", "printenv",
+    "ip", "ss", "ping", "dig", "nslookup",
+    "git", "cargo", "npm", "python3",
+]
+denied = [
+    "sh", "bash", "zsh", "fish", "dash", "csh", "ksh",
+    "eval", "exec", "source", "sudo", "su", "nohup",
+]
+max_args = 50
+max_output_bytes = 1048576  # 1 MiB
+arg_pattern = '^[a-zA-Z0-9_./:@=, -]+$'
+
+[commands.allowed_env]
+PATH = "/usr/local/bin:/usr/bin:/bin"
+LANG = "en_US.UTF-8"
+LC_ALL = "en_US.UTF-8"
+TERM = "xterm-256color"
+
+# Resources: remote files the LLM can read directly
+# [[resources]]
+# name = "syslog"
+# description = "System log file"
+# path = "/var/log/syslog"
+# max_bytes = 65536
+
+# [[resources]]
+# name = "auth-log"
+# description = "Authentication log"
+# path = "/var/log/auth.log"
+# max_bytes = 65536
