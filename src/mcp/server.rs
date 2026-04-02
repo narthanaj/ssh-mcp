@@ -47,6 +47,7 @@ impl SshMcpServer {
                 &params.host,
                 port,
                 &params.username,
+                params.auth_method.as_ref(),
                 params.key_path.as_deref(),
                 params.password.as_deref(),
             )

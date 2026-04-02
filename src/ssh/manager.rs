@@ -31,6 +31,7 @@ impl ConnectionManager {
         host: &str,
         port: u16,
         username: &str,
+        auth_method: Option<&crate::mcp::params::AuthMethod>,
         key_path: Option<&str>,
         password: Option<&str>,
     ) -> Result<String, SshMcpError> {
@@ -39,6 +40,15 @@ impl ConnectionManager {
                 max: self.config.server.max_connections,
             });
         }
+
+        // Respect auth_method param: if user explicitly picks a method, honor it
+        let use_ssh_agent = match auth_method {
+            Some(crate::mcp::params::AuthMethod::Agent) => true,
+            Some(
+                crate::mcp::params::AuthMethod::Key | crate::mcp::params::AuthMethod::Password,
+            ) => false,
+            None => self.config.server.use_ssh_agent,
+        };
 
         let id = uuid::Uuid::new_v4().to_string();
         let session = SshSession::<Disconnected>::new(
@@ -52,7 +62,7 @@ impl ConnectionManager {
 
         let authenticated = session
             .connect(
-                self.config.server.use_ssh_agent,
+                use_ssh_agent,
                 key_path,
                 password,
                 self.config.server.strict_host_key_checking,

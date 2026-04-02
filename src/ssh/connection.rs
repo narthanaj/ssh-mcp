@@ -286,10 +286,18 @@ async fn try_agent_auth(
         return Ok(false);
     }
 
+    // Negotiate the best RSA hash algorithm supported by the server
+    let rsa_hash = handle
+        .best_supported_rsa_hash()
+        .await
+        .ok()
+        .flatten()
+        .flatten();
+
     for identity in &identities {
         tracing::debug!(algorithm = ?identity.algorithm(), "Trying agent identity");
         let result = handle
-            .authenticate_publickey_with(user, identity.clone(), None, &mut agent)
+            .authenticate_publickey_with(user, identity.clone(), rsa_hash, &mut agent)
             .await;
         match result {
             Ok(auth_result) => {
@@ -311,7 +319,14 @@ async fn try_key_auth(
     tracing::debug!(path = %key_path, "Attempting key-based authentication");
     let expanded = shellexpand_path(key_path);
     let key = russh::keys::load_secret_key(Path::new(&expanded), None)?;
-    let key_with_alg = russh::keys::PrivateKeyWithHashAlg::new(Arc::new(key), None);
+    // Negotiate the best RSA hash algorithm (rsa-sha2-256/512) instead of deprecated ssh-rsa
+    let hash_alg = handle
+        .best_supported_rsa_hash()
+        .await
+        .ok()
+        .flatten()
+        .flatten();
+    let key_with_alg = russh::keys::PrivateKeyWithHashAlg::new(Arc::new(key), hash_alg);
     let result = handle.authenticate_publickey(user, key_with_alg).await?;
     Ok(result.success())
 }
