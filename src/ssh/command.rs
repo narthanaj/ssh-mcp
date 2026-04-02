@@ -19,8 +19,9 @@ impl ValidatedCommand {
         env: &HashMap<String, String>,
         config: &CommandConfig,
     ) -> Result<Self, SshMcpError> {
-        // 1. Check binary is in allowed list
-        if !config.allowed.iter().any(|a| a == binary) {
+        // 1. Check binary is in allowed list ("*" permits all)
+        let allow_all = config.allowed.iter().any(|a| a == "*");
+        if !allow_all && !config.allowed.iter().any(|a| a == binary) {
             return Err(SshMcpError::CommandRejected {
                 reason: format!("command '{}' is not in the allowed list", binary),
             });
